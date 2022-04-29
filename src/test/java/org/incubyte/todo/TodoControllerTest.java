@@ -59,7 +59,7 @@ public class TodoControllerTest {
         Todo savedTodo1 = this.httpClient.toBlocking().retrieve(HttpRequest.POST("/todos", todo1), Argument.of(Todo.class));
         assertThat(savedTodo1.getDescription()).isEqualTo("I need to do homework");
         assertThat(savedTodo1.isDone()).isFalse();
-        assertThat(savedTodo1.getId()).isPositive();
+        assertThat(savedTodo1.getId()).isNegative();
 
         Todo retrievedTodo = this.httpClient.toBlocking().retrieve(HttpRequest.GET("/todos/" + savedTodo1.getId()), Argument.of(Todo.class));
 
