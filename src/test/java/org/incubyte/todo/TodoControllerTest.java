@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @MicronautTest
@@ -35,64 +36,59 @@ public class TodoControllerTest {
 
         Todo retrievedTodo = this.httpClient.toBlocking().retrieve(HttpRequest.GET("/todos/" + savedTodo.getId()), Argument.of(Todo.class));
 
-        Assertions.assertThat(retrievedTodo.getId()).isEqualTo(savedTodo.getId());
-        Assertions.assertThat(retrievedTodo.getDescription()).isEqualTo(savedTodo.getDescription());
-        Assertions.assertThat(retrievedTodo.isDone()).isEqualTo(savedTodo.isDone());
+        assertThat(retrievedTodo.getId()).isEqualTo(savedTodo.getId());
+        assertThat(retrievedTodo.getDescription()).isEqualTo(savedTodo.getDescription());
+        assertThat(retrievedTodo.isDone()).isEqualTo(savedTodo.isDone());
     }
 
 
     @Test
-    public void get_all_the_todos_from() {
-
+    public void test_for_todo_CRUD_and_filtering()
+    {
         Todo todo1 = new Todo();
+
         todo1.setDescription("I need to do homework");
+        todo1.setDone(false);
+
 
         Todo todo2 = new Todo();
-        todo2.setDescription("I need to have a bath");
 
-        Todo todo3 = new Todo();
-        todo3.setDescription("I need to kill abdul");
+        todo2.setDescription("I need to have a bath");
+        todo2.setDone(true);
 
         Todo savedTodo1 = this.httpClient.toBlocking().retrieve(HttpRequest.POST("/todos", todo1), Argument.of(Todo.class));
+        assertThat(savedTodo1.getDescription()).isEqualTo("I need to do homework");
+        assertThat(savedTodo1.isDone()).isFalse();
+        assertThat(savedTodo1.getId()).isPositive();
+
+        Todo retrievedTodo = this.httpClient.toBlocking().retrieve(HttpRequest.GET("/todos/" + savedTodo1.getId()), Argument.of(Todo.class));
+
+        assertThat(retrievedTodo.getId()).isEqualTo(savedTodo1.getId());
+        assertThat(retrievedTodo.getDescription()).isEqualTo(savedTodo1.getDescription());
+        assertThat(retrievedTodo.isDone()).isEqualTo(savedTodo1.isDone());
+
         Todo savedTodo2 = this.httpClient.toBlocking().retrieve(HttpRequest.POST("/todos", todo2), Argument.of(Todo.class));
-        Todo savedTodo3 = this.httpClient.toBlocking().retrieve(HttpRequest.POST("/todos", todo3), Argument.of(Todo.class));
+        assertThat(savedTodo2.getDescription()).isEqualTo("I need to have a bath");
+        assertThat(savedTodo2.isDone()).isTrue();
+        assertThat(savedTodo2.getId()).isPositive();
 
 
         List<Todo> retrivedTodoList = httpClient.toBlocking().retrieve(
                 HttpRequest.GET("todos/"), Argument.listOf(Todo.class));
 
-        Assertions.assertThat(retrivedTodoList).contains(savedTodo1, savedTodo2, savedTodo3);
-    }
-
-    @Test
-    public void get_todos_by_status()
-    {
-        //Arrange
-        Todo todo1 = new Todo();
-//        todo1.setId(1L);
-        todo1.setDescription("I need to do homework");
-        todo1.setDone(false);
-
-        Todo todo2 = new Todo();
-//        todo2.setId(2L);
-        todo2.setDescription("I need to have a bath");
-        todo2.setDone(true);
-
-        //Act
-        Todo savedTodo1 = this.httpClient.toBlocking().retrieve(HttpRequest.POST("/todos", todo1), Argument.of(Todo.class));
-        Todo savedTodo2 = this.httpClient.toBlocking().retrieve(HttpRequest.POST("/todos", todo2), Argument.of(Todo.class));
-
-        //Assert
+        assertThat(retrivedTodoList).containsExactly(savedTodo1, savedTodo2);
         List<Todo> retrivedOpenTodoList = httpClient.toBlocking().retrieve(
                 HttpRequest.GET("todos/open"), Argument.listOf(Todo.class));
 
-        Assertions.assertThat(retrivedOpenTodoList).containsExactly(savedTodo1);
+        assertThat(retrivedOpenTodoList).containsExactly(savedTodo1);
 
         List<Todo> retrivedCloseTodoList = httpClient.toBlocking().retrieve(
                 HttpRequest.GET("todos/close"), Argument.listOf(Todo.class));
 
-        Assertions.assertThat(retrivedCloseTodoList).containsExactly(savedTodo2);
+        assertThat(retrivedCloseTodoList).containsExactly(savedTodo2);
 
     }
+
+
 
 }
